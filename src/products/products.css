@@ -1,0 +1,74 @@
+.btn-refresh {
+    background-color: #f0f0f0;
+    /* Plain light gray background */
+    border: none;
+    color: #333;
+    /* Dark text color */
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-refresh:hover {
+    background-color: #e0e0e0;
+    /* Slightly darker gray on hover */
+}
+
+.no-data-container {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.products-container {
+    padding: 20px;
+
+}
+
+.product-title {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+
+.product-image {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    object-fit: cover;
+    padding: 5px;
+    border: 1px solid #c1c0c0;
+}
+
+/* rating stars */
+
+.star-rating {
+    --percent: calc(var(--rating) / 5 * 100%);
+    --star-size: 1.5rem;
+    --star-color: #fff;
+    --star-background: #fc0;
+
+    display: inline-block;
+    font-size: var(--star-size);
+    color: var(--star-color);
+    background: var(--star-background);
+    background-clip: text;
+    font-family: Times;
+    line-height: 1;
+
+    &::before {
+        content: '★★★★★';
+        letter-spacing: 3px;
+        background: linear-gradient(90deg, var(--star-background) var(--percent), var(--star-color) var(--percent));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+}
+
+.ratings-count {
+    text-align: left;
+    font-size: 14px;
+}
