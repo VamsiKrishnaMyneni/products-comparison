@@ -1,99 +1,113 @@
 import { renderHook, act } from "@testing-library/react";
-import useProductsFetch from "./useProductsFetch"; // Adjust the path as needed
+import useProductsFetch from "./useProductsFetch";
 
-// Mock product data
-const mockProducts = [
-    { id: 1, title: "Product 1", price: 100 },
-    { id: 2, title: "Product 2", price: 200 }
-];
+// Mock the fetch API
+global.fetch = jest.fn();
 
-describe("useProductsFetch Hook", () => {
-    beforeEach(() => {
-        jest.spyOn(global, "fetch"); // Mock fetch
-    });
-
+describe("useProductsFetch", () => {
     afterEach(() => {
-        jest.restoreAllMocks(); // Restore fetch after each test
+        jest.clearAllMocks();
     });
 
-    test("should fetch and return products data", async () => {
-        (global.fetch as jest.Mock).mockResolvedValue({
+    it("should return the correct initial state", () => {
+        const { result } = renderHook(() => useProductsFetch());
+
+        expect(result.current.data).toEqual([]);
+        expect(result.current.loading).toBe(true);
+        expect(result.current.error).toBeNull();
+    });
+
+    it("should fetch data successfully", async () => {
+        const mockData = [{ id: 1, title: "Product 1" }];
+        // Mock successful fetch response
+        (fetch as jest.Mock).mockResolvedValueOnce({
             ok: true,
-            json: jest.fn().mockResolvedValue(mockProducts),
+            json: async () => mockData,
         });
 
         const { result } = renderHook(() => useProductsFetch());
 
-        // Initially, loading should be true
-        expect(result.current.loading).toBe(true);
+        // Trigger the fetchData function
+        await act(async () => {
+            await result.current.fetchData();
+        });
 
-        // Wait for fetch to complete
-        await act(async () => { result.current.fetchData() });
-
-        // Check final state
+        expect(result.current.data).toEqual(mockData);
         expect(result.current.loading).toBe(false);
         expect(result.current.error).toBeNull();
-        expect(result.current.data).toEqual([{
-            "id": 1,
-            "price": 100,
-            "title": "Product 1",
-        }, {
-            "id": 2,
-            "price": 200,
-            "title": "Product 2",
-        }]);
     });
 
-    test("should handle API errors", async () => {
-        (global.fetch as jest.Mock).mockResolvedValue({
+    it("should set error if fetch fails", async () => {
+        // Mock a failed fetch response
+        (fetch as jest.Mock).mockRejectedValueOnce(new Error("Network error"));
+
+        const { result } = renderHook(() => useProductsFetch());
+
+        // Trigger the fetchData function
+        await act(async () => {
+            await result.current.fetchData();
+        });
+
+        expect(result.current.data).toEqual([]);
+        expect(result.current.loading).toBe(false);
+        expect(result.current.error).toBe("Oops! Something went wrong.");
+    });
+
+    it("should set error if response is not ok", async () => {
+        // Mock a failed response (not OK status)
+        (fetch as jest.Mock).mockResolvedValueOnce({
             ok: false,
-            json: jest.fn(),
+            json: async () => [],
         });
 
         const { result } = renderHook(() => useProductsFetch());
 
-        await act(async () => { result.current.fetchData() });
+        // Trigger the fetchData function
+        await act(async () => {
+            await result.current.fetchData();
+        });
 
-        expect(result.current.loading).toBe(false);
         expect(result.current.data).toEqual([]);
+        expect(result.current.loading).toBe(false);
         expect(result.current.error).toBe("Oops! Something went wrong.");
     });
 
-    test("should handle network errors", async () => {
-        (global.fetch as jest.Mock).mockRejectedValue(new Error("Network Error"));
+    it("should handle loading state properly", async () => {
+        const mockData = [{ id: 1, title: "Product 1" }];
+        // Mock successful fetch response
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockData,
+        });
 
         const { result } = renderHook(() => useProductsFetch());
 
-        await act(async () => { result.current.fetchData() });
+        expect(result.current.loading).toBe(true); // Initially loading is true
 
-        expect(result.current.loading).toBe(false);
-        expect(result.current.data).toEqual([]);
-        expect(result.current.error).toBe("Oops! Something went wrong.");
+        // Trigger the fetchData function and wait for it to resolve
+        await act(async () => {
+            await result.current.fetchData();
+        });
+
+        expect(result.current.loading).toBe(false); // After fetching, loading should be false
     });
 
-    test("should allow manual re-fetching with refetch", async () => {
-        (global.fetch as jest.Mock).mockResolvedValueOnce({
+    it("should handle when the data is null", async () => {
+        // Mock successful fetch response
+        (fetch as jest.Mock).mockResolvedValueOnce({
             ok: true,
-            json: jest.fn().mockResolvedValue(mockProducts),
+            json: async () => null,
         });
 
         const { result } = renderHook(() => useProductsFetch());
 
-        await act(async () => { result.current.fetchData() });
+        expect(result.current.loading).toBe(true); // Initially loading is true
 
-        // Mock new response for refetch
-        (global.fetch as jest.Mock).mockResolvedValueOnce({
-            ok: true,
-            json: jest.fn().mockResolvedValue([{ id: 3, title: "Product 3", price: 300 }]),
+        // Trigger the fetchData function and wait for it to resolve
+        await act(async () => {
+            await result.current.fetchData();
         });
 
-        await act(async () => { result.current.fetchData() });
-
-        // Check updated data
-        expect(result.current.data).toEqual([{
-            "id": 3,
-            "price": 300,
-            "title": "Product 3",
-        }]);
+        expect(result.current.loading).toBe(false); // After fetching, loading should be false
     });
 });

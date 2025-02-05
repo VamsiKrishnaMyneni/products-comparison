@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import Products from "./Products";
+import ProductsComparision from "./ProductsComparision";
 import useProductsFetch from "./fetch/useProductsFetch";
 
 // Mock API fetch hook
@@ -44,14 +44,14 @@ describe("Products Component", () => {
     test("renders loading state", () => {
         (useProductsFetch as jest.Mock).mockReturnValue({ data: [], loading: true, error: null });
 
-        render(<Products />);
+        render(<ProductsComparision />);
         expect(screen.getByText("Loading...")).toBeInTheDocument();
     });
 
     test("renders error state and retry button", async () => {
         (useProductsFetch as jest.Mock).mockReturnValue({ data: [], loading: false, error: "Failed to load data" });
 
-        render(<Products />);
+        render(<ProductsComparision />);
         expect(screen.getByText("Failed to load data")).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
     });
@@ -59,14 +59,14 @@ describe("Products Component", () => {
     test("renders empty state message when no products are found", () => {
         (useProductsFetch as jest.Mock).mockReturnValue({ data: [], loading: false, error: null });
 
-        render(<Products />);
+        render(<ProductsComparision />);
         expect(screen.getByText("No rows to display")).toBeInTheDocument();
     });
 
     test("renders product list with correct data", () => {
         (useProductsFetch as jest.Mock).mockReturnValue({ data: mockProducts, loading: false, error: null });
 
-        render(<Products />);
+        render(<ProductsComparision />);
 
         expect(screen.getByText("Products Comparison")).toBeInTheDocument();
         expect(screen.getByText("Smartphone")).toBeInTheDocument();
@@ -77,7 +77,7 @@ describe("Products Component", () => {
     test("allows selecting and unselecting products", () => {
         (useProductsFetch as jest.Mock).mockReturnValue({ data: mockProducts, loading: false, error: null });
 
-        render(<Products />);
+        render(<ProductsComparision />);
 
         const checkboxes = screen.getAllByRole("checkbox");
 
@@ -97,7 +97,7 @@ describe("Products Component", () => {
     test("applies correct cell styling for selected products", () => {
         (useProductsFetch as jest.Mock).mockReturnValue({ data: mockProducts, loading: false, error: null });
 
-        render(<Products />);
+        render(<ProductsComparision />);
 
         const checkboxes = screen.getAllByRole("checkbox");
         fireEvent.click(checkboxes[0]); // Select Smartphone
@@ -113,7 +113,7 @@ describe("Products Component", () => {
     test("handles sorting correctly", async () => {
         (useProductsFetch as jest.Mock).mockReturnValue({ data: mockProducts, loading: false, error: null });
 
-        render(<Products />);
+        render(<ProductsComparision />);
 
         const priceHeader = screen.getByText("Price");
 
@@ -129,7 +129,7 @@ describe("Products Component", () => {
     test("renders category-based colors correctly", () => {
         (useProductsFetch as jest.Mock).mockReturnValue({ data: mockProducts, loading: false, error: null });
 
-        render(<Products />);
+        render(<ProductsComparision />);
 
         const rows = screen.getAllByRole("row");
         expect(rows[1]).toHaveClass("bg-white"); // Color should be applied

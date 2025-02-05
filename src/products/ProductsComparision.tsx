@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import useProductsFetch from './fetch/useProductsFetch';
-import './products.css'
+import './productsComparision.css'
 import DataGrid from '../datagrid';
 
-function Products() {
+function ProductsComparision() {
     const { data, loading, error, fetchData } = useProductsFetch();
     const [selectedRows, setSelectedRows] = useState<any[]>([]);
 
@@ -39,12 +39,14 @@ function Products() {
         }, {});
 
         const differences: any = {};
+        const comparisonKeys = ['rating.rate', 'rating.count', 'price'];
+
 
         Object.keys(groupedByCategory).forEach((category) => {
             const categoryProducts = groupedByCategory[category];
 
             if (categoryProducts.length > 1) {
-                const values = categoryProducts.map((row: any) => getValue(row, columnKey));
+                const values = categoryProducts.map((row: any) => comparisonKeys.includes(columnKey) && getValue(row, columnKey));
                 const min = Math.min(...values);
                 const max = Math.max(...values);
 
@@ -118,4 +120,4 @@ function Products() {
         </>
     )
 }
-export default Products;
+export default ProductsComparision;
