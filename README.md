@@ -54,87 +54,155 @@ npm run test:coverage
 
 
 
-# DataGrid Component Architecture
+
+# `DataGrid` Component Documentation
 
 ## Overview
-The **DataGrid** component is a reusable table component in React that supports dynamic data rendering, sorting, and row click events. It is designed to be flexible, accepting customizable columns, row data, and styling.
+The `DataGrid` is a flexible and customizable table component for rendering tabular data in React. It provides support for sorting, custom cell rendering, and dynamic styling, among other features. It is highly reusable and can handle data updates and user interactions seamlessly.
+
+---
+
+## Table of Contents
+- [Props](#props)
+  - [Column Interface](#column-interface)
+  - [DataGridProps Interface](#datagridprops-interface)
+- [Features](#features)
+  - [Sorting](#sorting)
+  - [Dynamic Data Rendering](#dynamic-data-rendering)
+  - [Custom Cell Styles](#custom-cell-styles)
+  - [Row Click Handler](#row-click-handler)
+  - [Table Responsiveness](#table-responsiveness)
+- [Usage Example](#usage-example)
+- [Customization](#customization)
+  - [Column Width](#column-width)
+  - [Cell Rendering](#cell-rendering)
+  - [Sorting Customization](#sorting-customization)
+- [Performance and Optimization](#performance-and-optimization)
+
+---
 
 ## Props
-The component accepts the following props:
 
-| Prop Name   | Type                                  | Description |
-|------------|--------------------------------------|-------------|
-| `columns`   | `any[]` | An array defining the column structure (label, key, width, sorting, etc.). |
-| `data`      | `any[]` | An array of data objects to be displayed in the table. |
-| `height`    | `number?` | Optional table height (default: 400px). |
-| `onRowClick` | `(row: any) => void` | Optional callback triggered when a row is clicked. |
-| `cellStyles` | `(row: any, key: string, category: string) => {}` | Optional function for custom cell styling based on row data. |
+### `Column` Interface
 
-## Component Structure
+The `Column` interface defines the structure of each column in the grid. It supports customizable behavior such as sorting and rendering.
 
-### 1. **State Management**
-- `tableData`: Stores the table's current data (initially set to the `data` prop).
-- `sortConfig`: Stores sorting configuration (`key` and `direction`).
+| Field     | Type                 | Description                                         |
+|-----------|----------------------|-----------------------------------------------------|
+| `key`     | `string`             | A unique identifier for the column. Used for accessing data and sorting. |
+| `label`   | `string`             | The display name for the column header. |
+| `width`   | `number` (optional)  | The width of the column in pixels. Defaults to `200` if not provided. |
+| `sort`    | `boolean` (optional) | Indicates if the column is sortable. Defaults to `false` if not provided. |
+| `render`  | `(row: T, value: any) => React.ReactNode` (optional) | A custom render function to format the cell content. |
 
-### 2. **Lifecycle Methods**
-- `useEffect(() => { setTableData(data); }, [data]);`
-  - Updates `tableData` when the `data` prop changes.
+### `DataGridProps` Interface
 
-### 3. **Data Rendering**
-- Uses a `table` element to structure the grid.
-- Iterates over `columns` to generate table headers (`thead > tr > th`).
-- Iterates over `tableData` to render rows (`tbody > tr > td`).
+The `DataGridProps` interface defines the overall structure of the `DataGrid` component.
 
-### 4. **Sorting Mechanism**
-- `handleSort(key: string)` is triggered when a column header is clicked.
-- Toggles sorting order (`asc` ⇄ `desc`).
-- Uses `Array.prototype.sort()` to update `tableData`.
-- Displays sorting icons (`fa-sort-up`, `fa-sort-down`).
+| Field         | Type                    | Description                                                                 |
+|---------------|-------------------------|-----------------------------------------------------------------------------|
+| `columns`     | `Column<T>[]`            | An array of `Column` objects defining the columns for the table.            |
+| `data`        | `T[]`                    | The data to be displayed in the table, where `T` is a generic type for row data. |
+| `height`      | `number` (optional)      | The height of the table in pixels. Defaults to `400`.                        |
+| `onRowClick`  | `(row: T) => void` (optional) | A callback function triggered when a row is clicked.                         |
+| `cellStyles`  | `(key: string, value: any, category: string) => React.CSSProperties` (optional) | A function to apply custom styles to individual cells. |
 
-### 5. **Row Click Handling**
-- Calls `onRowClick(row)` when a row is clicked (if `onRowClick` is provided).
+---
 
-### 6. **Custom Cell Rendering & Styling**
-- `getValue(row, key)`: Retrieves nested values using dot notation.
-- `col.render ? col.render(row, getValue(row, col.key)) : getValue(row, col.key)` allows custom rendering per column.
-- Applies `cellStyles()` if provided.
+## Features
 
-## Features & Enhancements
-✅ Dynamic data rendering  
-✅ Clickable rows with callback support  
-✅ Column-based sorting  
-✅ Customizable cell rendering and styling  
-✅ Responsive table layout  
+### Sorting
 
-## Potential Improvements
-🔹 Add pagination support for large datasets  
-🔹 Implement multi-column sorting  
-🔹 Improve accessibility (ARIA attributes)  
+- Columns marked with `sort: true` can be clicked to sort the data.
+- Sorting alternates between ascending and descending order when clicked.
+- The current sorting state is tracked using `sortConfig`, which includes the `key` (column name) and `direction` (`asc` or `desc`).
+  
+### Dynamic Data Rendering
+
+- The table dynamically renders data based on the provided `columns` and `data`.
+- Each row is rendered based on the values from the `data` array, with each cell displaying the corresponding value or using a custom `render` function if provided.
+
+### Custom Cell Styles
+
+- The `cellStyles` prop allows users to define custom styles for each cell.
+- The `cellStyles` function receives three arguments: the column key, the cell value, and the category (optional).
+  
+### Row Click Handler
+
+- The `onRowClick` prop provides a callback that is triggered when a row is clicked.
+- It passes the entire row data to the callback function for further handling.
+
+### Table Responsiveness
+
+- The table adjusts its width based on the sum of individual column widths.
+- By default, the height of the table is `400px`, but it can be customized via the `height` prop.
+
+---
 
 ## Usage Example
+
 ```tsx
 <DataGrid
-  columns={[
-         { label: "Select", key: "id", width: 10, render: (rowData: any) => {
+  columns={[{ label: "Select", key: "id", width: 10, render: (rowData: any) => {
                 return <input type="checkbox" onChange={() => handleRowSelect(rowData)} />
-     }
-    },
-    { label: "Name", key: "name", sort: true },
-    { label: "Age", key: "age", sort: true },
-    { label: "Country", key: "address.country" },
+     }},
+    { key: 'age', label: 'Age', width: 100, sort: true },
+    { key: 'email', label: 'Email', width: 200 },
   ]}
   data={[
-    { name: "Alice", age: 30, address: { country: "USA" } },
-    { name: "Bob", age: 25, address: { country: "UK" } },
+    { name: 'John Doe', age: 30, email: 'john@example.com' },
+    { name: 'Jane Smith', age: 25, email: 'jane@example.com' },
   ]}
   height={500}
-  onRowClick={(row) => console.log("Clicked Row:", row)}
-  cellStyles={(key, value, category) => ({ color: key === "age" && value > 28 ? "red" : "black" })}
+  onRowClick={(row) => console.log(row)}
+  cellStyles={(key, value) => ({
+    color: value === 'John Doe' ? 'blue' : 'black'
+  })}
 />
 ```
 
-## Conclusion
-The **DataGrid** component is a versatile table that provides sorting, row interaction, and customizable styles. It can be further extended with pagination, filtering, and advanced accessibility features to enhance usability.
+In the example:
+- The table will render three columns: "Name", "Age", and "Email".
+- The "Name" and "Age" columns are sortable.
+- Clicking a row will log the row data.
+- Custom styling is applied to the "Name" column where `John Doe` will appear in blue text.
+
+---
+
+## Customization
+
+### Column Width
+
+- Column widths are defined in the `columns` array using the `width` property.
+- If no width is provided, a default of `200px` is used for that column.
+
+### Cell Rendering
+
+- The `render` function allows custom formatting of cell content.
+- Example: Formatting a date or currency value can be done through the `render` function for that specific column.
+
+### Sorting Customization
+
+- Sorting is performed based on the column's `key`.
+- Custom sorting logic can be implemented by passing a custom sorting function to the `Column` interface if needed.
+
+---
+
+## Performance and Optimization
+
+### Virtualization
+For large datasets, consider using a virtualization technique to only render visible rows (e.g., `react-window` or `react-virtualized`).
+
+### Sorting Optimization
+Currently, sorting involves a full array re-sort, which may impact performance for very large datasets. Optimizations like memoization or lazy loading can improve performance.
+
+### Re-rendering Optimization
+To avoid unnecessary re-renders, ensure that data updates are minimal, and consider using React's `memo` or `useMemo` hooks to prevent re-sorting when data hasn't changed.
+
+--- 
+
+This documentation covers the key aspects of the `DataGrid` component. It should provide enough information to understand, implement, and customize the component in your React projects.
+ 
 
 
 
